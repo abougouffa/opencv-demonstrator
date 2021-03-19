@@ -20,49 +20,43 @@
     along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#include <opencv2/opencv.hpp>
+#include "cutil.hpp"
+#include "mmi/gtkutil.hpp"
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/features2d/features2d.hpp>
-#include "mmi/gtkutil.hpp"
-#include "cutil.hpp"
+#include <opencv2/opencv.hpp>
 
-using namespace cv;
-
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   utils::CmdeLine cmdeline(argc, argv);
   utils::init(cmdeline, "ocvdemo", "test-webcam");
-  utils::journal::set_global_min_level(utils::journal::TraceTarget::TRACE_TARGET_FILE, utils::journal::AL_VERBOSE);
+  utils::journal::set_global_min_level(
+      utils::journal::TraceTarget::TRACE_TARGET_FILE,
+      utils::journal::AL_VERBOSE);
 
-  VideoCapture cam(0);
+  cv::VideoCapture cam(0);
 
   utils::langue.load("./data/lang.xml");
   Gtk::Main kit(argc, argv);
 
-  if(!cam.isOpened())
-  {
-    utils::mmi::dialogs::affiche_erreur(utils::langue.get_item("cam-err-1"), utils::langue.get_item("cam-err-2"), utils::langue.get_item("cam-err-3"));
+  if (!cam.isOpened()) {
+    utils::mmi::dialogs::affiche_erreur(utils::langue.get_item("cam-err-1"),
+                                        utils::langue.get_item("cam-err-2"),
+                                        utils::langue.get_item("cam-err-3"));
     return -1;
   }
 
-  Mat I;
-  do
-  {
+  cv::Mat I;
+  do {
     cam >> I;
 
-    if(I.data == nullptr)
+    if (I.data == nullptr)
       break;
 
     // A FAIRE : diviser la résolution par 2 et passer en niveaux de gris
     // [...]
     cv::pyrDown(I, I);
 
-    imshow("Camera #0", I);
-  } while (waitKey(30) == -1); // Sortie dès que appui sur une touche
+    cv::imshow("Camera #0", I);
+  } while (cv::waitKey(30) == -1); // Sortie dès que appui sur une touche
   return 0;
 }
-
-
-
-

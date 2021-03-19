@@ -26,32 +26,27 @@
 
 #include "cutil.hpp"
 #include "modele.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-#include <stdlib.h>
+#include "opencv2/imgproc/imgproc.hpp"
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef WIN
 //#define USE_CONTRIB
 #endif
 
-using namespace cv;
 using namespace utils::model;
-
 
 struct OCVDemoItemRefresh {};
 
 ////////////////////////////////////////////////////////////////////////////
 /** @bref Classe de base pour toutes les démonstrations OpenCV */
 /** @brief Base class for all OpenCV demonstrations */
-class OCVDemoItem: public utils::CProvider<OCVDemoItemRefresh>
-{
+class OCVDemoItem : public utils::CProvider<OCVDemoItemRefresh> {
 public:
-
   /** @bref Propriétés d'une démonstration OpenCV */
   /** @brief Properties of an OpenCV demonstration */
-  struct OCVDemoItemProperties
-  {
+  struct OCVDemoItemProperties {
     /** Chaine d'identification (pour retrouver le schéma XML) */
     std::string id;
 
@@ -73,8 +68,7 @@ public:
   };
 
   /** Réglages d'une démonstration OpenCV */
-  struct OCVDemoItemInput
-  {
+  struct OCVDemoItemInput {
     /** Modèle (configuration du traitement) */
     utils::model::Node model;
 
@@ -86,18 +80,17 @@ public:
 
     /** Liste des images d'entrée */
     /** List of input images */
-    std::vector<Mat> images;
+    std::vector<cv::Mat> images;
   };
 
   /** Sortie */
   /** @brief Output */
-  struct OCVDemoItemOutput
-  {
+  struct OCVDemoItemOutput {
     /** Nombre d'images produites */
     /** @brief Number of output images */
     int nout;
 
-#   define DEMO_MAX_IMG_OUT 50
+#define DEMO_MAX_IMG_OUT 50
 
     /** Images de sortie */
     /** @brief Output images */
@@ -111,8 +104,9 @@ public:
     /** Error message in case of failure (UTF-8) */
     std::string errmsg;
 
-    /** TO DEPRECATE? Pointeur vers la "vraie" image de sortie ???? to remove !!!! */
-   // cv::Mat vrai_sortie;
+    /** TO DEPRECATE? Pointeur vers la "vraie" image de sortie ???? to remove
+     * !!!! */
+    // cv::Mat vrai_sortie;
   };
 
   /** Propriétés de la démo */
@@ -125,29 +119,28 @@ public:
   OCVDemoItemOutput output;
 
   /** Calcul effectif */
-  /** @brief Overload this method to define the specific processing to be done for this demo */
+  /** @brief Overload this method to define the specific processing to be done
+   * for this demo */
   virtual int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) = 0;
 
   /** Constructeur par défaut */
   OCVDemoItem();
 
   /** Destructeur */
-  virtual ~OCVDemoItem(){}
+  virtual ~OCVDemoItem() {}
 
   /** Appelé dès lors que la ROI a changé */
-  virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){input.roi = new_roi;}
+  virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi) {
+    input.roi = new_roi;
+  }
 
   /** Evenement souris */
-  virtual void on_mouse(int x, int y, int evt, int wnd) {};
+  virtual void on_mouse(int x, int y, int evt, int wnd){};
 
   /** Demande de remise à zéro de l'état de la démo */
-  virtual void raz() {};
+  virtual void raz(){};
 
   utils::model::Node modele;
 };
-
-
-
-
 
 #endif /* OCVDEMO_ITEM_HPP_ */

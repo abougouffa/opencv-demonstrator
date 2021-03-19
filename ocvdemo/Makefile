@@ -28,6 +28,8 @@ LIBS_EXTERNES = $(RPATH)/libcutil $(RPATH)/libocvext
 # Autres options de link
 OPTIONS_LINK = 
 
+ADDITIONNAL_INC_DIRS += -I/usr/include/opencv4
+
 # Pour pouvoir compiler les fichiers d'en-tête de libarf
 OPTIONS_COMPIL = 
 

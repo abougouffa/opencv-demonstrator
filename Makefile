@@ -26,6 +26,8 @@ UNAME := $(shell uname)
 # Path to repository root directy
 
 
+ADDITIONNAL_INC_DIRS += -I/usr/include/opencv4
+
 ifeq ($(UNAME), MINGW32_NT-6.2)
 	T := WIN
 else

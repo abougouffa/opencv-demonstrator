@@ -24,26 +24,20 @@
 #include "demo-items/morpho-demo.hpp"
 #include "thinning.hpp"
 
+MorphoDemo::MorphoDemo() { props.id = "morpho"; }
 
-MorphoDemo::MorphoDemo()
-{
-  props.id = "morpho";
-}
-
-
-int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
+int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) {
   int sel = input.model.get_attribute_as_int("type");
   int kersel = input.model.get_attribute_as_int("kernel");
   int niter = input.model.get_attribute_as_int("niter");
 
-  int kernel_type = MORPH_RECT;
-  if(kersel == 0)
-    kernel_type = MORPH_RECT;
-  else if(kersel == 1 )
-    kernel_type = MORPH_CROSS;
-  else if(kersel == 2)
-    kernel_type = MORPH_ELLIPSE;
+  int kernel_type = cv::MORPH_RECT;
+  if (kersel == 0)
+    kernel_type = cv::MORPH_RECT;
+  else if (kersel == 1)
+    kernel_type = cv::MORPH_CROSS;
+  else if (kersel == 2)
+    kernel_type = cv::MORPH_ELLIPSE;
   else
     assert(0);
 
@@ -52,87 +46,74 @@ int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   printf("Proceed k = %d, kw = %d, sel = %d.\n", kersel, kernel_width, sel);
   fflush(0);
 
-  Mat K = getStructuringElement(kernel_type,
-                                      Size(2*kernel_width + 1, 2*kernel_width+1 ),
-                                      Point(kernel_width, kernel_width));
+  cv::Mat K = getStructuringElement(
+      kernel_type, cv::Size(2 * kernel_width + 1, 2 * kernel_width + 1),
+      cv::Point(kernel_width, kernel_width));
 
   auto I = input.images[0];
 
-  if(sel == 0)
-    dilate(I,output.images[0],K,cv::Point(-1,-1),niter);
-  else if(sel == 1)
-    erode(I,output.images[0],K,cv::Point(-1,-1),niter);
+  if (sel == 0)
+    dilate(I, output.images[0], K, cv::Point(-1, -1), niter);
+  else if (sel == 1)
+    erode(I, output.images[0], K, cv::Point(-1, -1), niter);
   else
-    morphologyEx(I, output.images[0], sel, K, cv::Point(-1,-1), niter);
+    morphologyEx(I, output.images[0], sel, K, cv::Point(-1, -1), niter);
 
   return 0;
 }
 
-DemoSqueletisation::DemoSqueletisation()
-{
-  props.id = "squeletisation";
-}
+DemoSqueletisation::DemoSqueletisation() { props.id = "squeletisation"; }
 
-int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
-  Mat A, squelette;
+int DemoSqueletisation::proceed(OCVDemoItemInput &input,
+                                OCVDemoItemOutput &output) {
+  cv::Mat A, squelette;
 
-  cv::cvtColor(input.images[0], A, CV_BGR2GRAY);
+  cv::cvtColor(input.images[0], A, cv::COLOR_BGR2GRAY);
 
-  if(input.model.get_attribute_as_boolean("binariser"))
+  if (input.model.get_attribute_as_boolean("binariser"))
     cv::threshold(A, A, 128, 255, cv::THRESH_OTSU);
 
-  if(input.model.get_attribute_as_boolean("inverser"))
+  if (input.model.get_attribute_as_boolean("inverser"))
     A = 255 - A;
-
 
   int sel = input.model.get_attribute_as_int("sel");
 
   // Gradient morphologique
   // Algorithme d'après page web
   // http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
-  if(sel == 0)
-  {
+  if (sel == 0) {
     ocvext::thinning_morpho(A, squelette);
   }
   // Zhang-Suen
-  // D'après https://web.archive.org/web/20160322113207/http://opencv-code.com/quick-tips/implementation-of-thinning-algorithm-in-opencv/
-  else if(sel == 1)
-  {
+  // D'après
+  // https://web.archive.org/web/20160322113207/http://opencv-code.com/quick-tips/implementation-of-thinning-algorithm-in-opencv/
+  else if (sel == 1) {
     ocvext::thinning_Zhang_Suen(A, squelette);
   }
   // Guo-Hall
-  // D'après https://web.archive.org/web/20160314104646/http://opencv-code.com/quick-tips/implementation-of-guo-hall-thinning-algorithm/
-  else if(sel == 2)
-  {
+  // D'après
+  // https://web.archive.org/web/20160314104646/http://opencv-code.com/quick-tips/implementation-of-guo-hall-thinning-algorithm/
+  else if (sel == 2) {
     ocvext::thinning_Guo_Hall(A, squelette);
   }
 
   int aff = input.model.get_attribute_as_int("aff");
-  if(aff == 0)
-  {
+  if (aff == 0) {
     output.nout = 1;
     output.names[0] = "Squelitisation";
     output.images[0] = squelette;
-  }
-  else if(aff == 1)
-  {
+  } else if (aff == 1) {
     output.nout = 2;
     output.names[0] = "Binarisation";
     output.names[1] = "Squelitisation";
     output.images[0] = A;
     output.images[1] = squelette;
-  }
-  else if(aff == 2)
-  {
+  } else if (aff == 2) {
     output.nout = 1;
     output.names[0] = "Squelitisation";
     output.images[0] = input.images[0].clone();
-    output.images[0].setTo(Scalar(0,0,255), squelette);
+    output.images[0].setTo(cv::Scalar(0, 0, 255), squelette);
   }
 
   return 0;
 }
-
-
-

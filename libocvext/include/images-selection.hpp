@@ -25,8 +25,8 @@
 
 #include "mmi/gtkutil.hpp"
 #include <gdkmm/pixbuf.h>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include "opencv4/opencv2/imgproc/imgproc.hpp"
+#include "opencv4/opencv2/highgui/highgui.hpp"
 #include "cutil.hpp"
 #include "mmi/stdview.hpp"
 #include "vue-image.hpp"

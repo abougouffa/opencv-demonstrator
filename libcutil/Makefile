@@ -42,7 +42,7 @@ EXECS:=   model-editor rcgene schema2doc preprocess
 # (not counting src and include) 
 ADDITIONNAL_SRC_DIRS = src/utilities src/mmi src/comm src/img
 
-ADDITIONNAL_INC_DIRS= 
+ADDITIONNAL_INC_DIRS= /usr/include/opencv4
 
 # External libraries
 EXTERNAL_LIBS = 
@@ -57,7 +57,7 @@ ADDITIONNAL_OBJS =
  # OCVIPATH not defined, assume that OpenCV is installed in default directories (e.g. /usr/include/, etc.)
 #else
  # OCVIPATH is defined: it should be the path where opencv was builded
-#ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
+ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
 #ADDITIONNAL_LOPT     += -L$(OCVLPATH) -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_videoio310 -lopencv_imgcodecs310 -march=i486
 #endif
 

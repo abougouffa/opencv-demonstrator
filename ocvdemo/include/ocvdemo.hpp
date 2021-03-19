@@ -24,38 +24,36 @@
 #ifndef OCV_DEMO_H
 #define OCV_DEMO_H
 
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include <stdlib.h>
-#include <stdio.h>
 #include "cutil.hpp"
-#include "mmi/stdview.hpp"
-#include <assert.h>
-#include <vector>
-#include "mmi/gtkutil.hpp"
 #include "hal.hpp"
+#include "mmi/gtkutil.hpp"
+#include "mmi/stdview.hpp"
 #include "ocvdemo-item.hpp"
-#include "tools/image-selecteur.hpp"
-#include "tools/image-mosaique.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include "tools/boutils-image.hpp"
-
+#include "tools/image-mosaique.hpp"
+#include "tools/image-selecteur.hpp"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
 
 using namespace utils;
 using namespace utils::model;
 using namespace utils::mmi;
-using namespace cv;
 
 /** Current software revision */
 #ifndef VMAJ
-# define VMAJ    1
-# define VMIN    3
-# define VPATCH  0
+#define VMAJ 1
+#define VMIN 3
+#define VPATCH 0
 #endif
 
 #ifndef OCV_VPATCH
-# define OCV_VMAJ     3
-# define OCV_VMIN     2
-# define OCV_VPATCH   0
+#define OCV_VMAJ 3
+#define OCV_VMIN 2
+#define OCV_VPATCH 0
 #endif
 
 // TODO: remove this ugly hack
@@ -64,20 +62,17 @@ using namespace cv;
   extern Localized::Language current_language;
 }*/
 
-
-
 /*struct OCVDemoParam
 {
   bool forcer_taille_fenetre_sortie;
   uint16_t fenetre_sortie_sx, fenetre_sortie_sy;
 };*/
 
-
-struct OCVDemoFinAppli{};
+struct OCVDemoFinAppli {};
 
 ////////////////////////////////////////////////////////////////////////////
 /** @brief Classe principale pour le démonstrateur OpenCV */
-class OCVDemo:
+class OCVDemo :
 
     // Changement de sélection dans l'arbre
     private CListener<utils::mmi::SelectionChangeEvent>,
@@ -94,14 +89,12 @@ class OCVDemo:
     // Demande de rafraichissement de la part d'une démo
     private CListener<OCVDemoItemRefresh>,
 
-    public CProvider<OCVDemoFinAppli>
-{
+    public CProvider<OCVDemoFinAppli> {
 public:
   /** Constructeur (devrait être privé !) */
-  OCVDemo(utils::CmdeLine &cmdeline,
-          const std::string &prefixe_modele = "");
+  OCVDemo(utils::CmdeLine &cmdeline, const std::string &prefixe_modele = "");
 
-  //void ajoute_bouton(Gtk::ToolButton *bouton);
+  // void ajoute_bouton(Gtk::ToolButton *bouton);
 
   OCVDemoItem *recherche_demo(const std::string &nom);
 
@@ -117,11 +110,11 @@ public:
   /** Export des images pour la doc HTML */
   void export_captures();
 
-  FileSchema *get_fileschema(){return this->fs_racine;}
+  FileSchema *get_fileschema() { return this->fs_racine; }
 
   void add_demo(OCVDemoItem *demo);
 
-  utils::model::Node get_modele_global() {return this->modele_global;}
+  utils::model::Node get_modele_global() { return this->modele_global; }
 
   Gtk::Frame frame_menu;
 
@@ -134,13 +127,12 @@ private:
 
   /** Réceptacle GTK pour une trame à partir du flux vidéo */
   void on_video_image(const std::vector<cv::Mat> &tmp);
-  
 
   void release_all_videos();
   bool are_all_video_ok();
 
   void export_captures(utils::model::Node &cat);
-  Mat  get_current_output();
+  cv::Mat get_current_output();
   bool has_output();
   void setup_demo(const utils::model::Node &sel);
   void maj_bts();
@@ -152,7 +144,7 @@ private:
   void on_menu_entree();
   void on_menu_quitter();
   void setup_menu();
-  
+
   // Evenement souris sur la fenêtre d'affichage
   void on_event(const OCVMouseEvent &me);
 
@@ -167,11 +159,11 @@ private:
 
   // Demande de rafraichissement en provenance d'une démo
   void on_event(const OCVDemoItemRefresh &e);
-  
+
   // Drag & drop
-  void on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context,
-		       int x, int y, const Gtk::SelectionData& selection_data,
-		       guint info, guint time);
+  void on_dropped_file(const Glib::RefPtr<Gdk::DragContext> &context, int x,
+                       int y, const Gtk::SelectionData &selection_data,
+                       guint info, guint time);
   bool on_delete_event(GdkEventAny *event);
   void on_b_save();
   void on_b_open();
@@ -186,7 +178,7 @@ private:
   void on_b_masque_gomme();
   void on_b_masque_remplissage();
 
-  // To communicate from the video thread to the main GTK thread 
+  // To communicate from the video thread to the main GTK thread
   utils::mmi::GtkDispatcher<std::vector<cv::Mat>> gtk_dispatcher;
 
   // Lock for video stream access.
@@ -260,10 +252,8 @@ private:
   bool first_processing;
 
   // Objets envoyés dans la fifo de calcul
-  struct ODEvent
-  {
-    enum
-    {
+  struct ODEvent {
+    enum {
       // Requiert la fin du thread (fin de l'application)
       FIN,
       // Calcul sur une image
@@ -273,7 +263,6 @@ private:
     OCVDemoItem *demo;
     utils::model::Node modele;
   };
-  
 
   // FIFO pour envoyer les commandes au thread de calcul
   utils::hal::Fifo<ODEvent> event_fifo;
@@ -281,13 +270,12 @@ private:
   // Fin du dernier calcul demandé
   utils::hal::Signal signal_calcul_termine;
   int calcul_status;
-  
+
   // Confirmation de la terminaison du thread de calcul
   utils::hal::Signal signal_thread_calcul_fin;
 
-  utils::hal::Signal signal_video_demarre,
-    signal_image_video_traitee,
-    signal_video_suspendue;
+  utils::hal::Signal signal_video_demarre, signal_image_video_traitee,
+      signal_video_suspendue;
 
   // Levé quand au moins une trame vidéo à fini d'être traitée
   utils::hal::Signal signal_une_trame_traitee;

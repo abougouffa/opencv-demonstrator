@@ -26,7 +26,7 @@ AUTRES_DOSSIERS_SOURCES = src/outils src/test
 LIBS_EXTERNES = $(RPATH)/libcutil
 
 # Autres options de compilation
-OPTIONS_COMPIL = 
+OPTIONS_COMPIL = -I/usr/include/opencv4
 
 # Dépendances OpenCV
 include $(RPATH)/libcutil/data/makefile-opencv320

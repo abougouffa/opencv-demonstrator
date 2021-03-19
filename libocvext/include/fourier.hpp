@@ -1,7 +1,7 @@
 #ifndef FOURIER_H
 #define FOURIER_H
 
-#include "opencv2/core.hpp"
+#include "opencv4/opencv2/core.hpp"
 
 
 namespace ocvext

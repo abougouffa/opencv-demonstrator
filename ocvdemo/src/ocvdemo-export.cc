@@ -20,39 +20,32 @@
     along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-
 #include "ocvdemo.hpp"
 
-
-std::string OCVDemo::export_demos(utils::model::Node &cat, Localized::Language lg)
-{
+std::string OCVDemo::export_demos(utils::model::Node &cat,
+                                  Localized::Language lg) {
   std::string s;
   auto nb_demos = cat.get_children_count("demo");
-  for(auto i = 0u; i < nb_demos; i++)
-  {
+  for (auto i = 0u; i < nb_demos; i++) {
     auto demo = cat.get_child_at("demo", i);
     s += "<tr>";
-    if(i == 0)
-    {
+    if (i == 0) {
       s += "<td rowspan=\"" + utils::str::int2str(nb_demos) + "\"><b>";
-      s +=  cat.get_localized().get_value(lg);
+      s += cat.get_localized().get_value(lg);
       s += "</b></td>";
     }
     s += "<td>" + demo.get_localized().get_value(lg) + "</td>";
 
-
-    //s += "<td>" + demo.get_localized().get_description(lg) + "</td>";
+    // s += "<td>" + demo.get_localized().get_description(lg) + "</td>";
 
     auto id = demo.name();
     NodeSchema *ns = fs_racine->get_schema(id);
 
-    if(ns != nullptr)
-    {
-      std::string s2 = "<br/><img src=\"imgs/" + id + ".jpg\" alt=\"" + demo.get_localized().get_value(lg) + "\"/>";
+    if (ns != nullptr) {
+      std::string s2 = "<br/><img src=\"imgs/" + id + ".jpg\" alt=\"" +
+                       demo.get_localized().get_value(lg) + "\"/>";
       s += "<td>" + ns->name.get_description(lg) + s2 + "</td>";
-    }
-    else
-    {
+    } else {
       s += "<td></td>";
       avertissement("Pas de schema / description pour %s.", id.c_str());
     }
@@ -62,17 +55,20 @@ std::string OCVDemo::export_demos(utils::model::Node &cat, Localized::Language l
   return s;
 }
 
-std::string OCVDemo::export_html(Localized::Language lg)
-{
+std::string OCVDemo::export_html(Localized::Language lg) {
   std::string s = "<table class=\"formtable\">\n";
-  if(lg == Localized::Language::LANG_FR)
-    s += std::string(R"(<tr><td colspan="2"><b>Démonstration</b></td><td><b>Description</b></td></tr>)") + "\n";
+  if (lg == Localized::Language::LANG_FR)
+    s +=
+        std::string(
+            R"(<tr><td colspan="2"><b>Démonstration</b></td><td><b>Description</b></td></tr>)") +
+        "\n";
   else
-    s += std::string(R"(<tr><td colspan="2"><b>Demonstration</b></td><td><b>Description</b></td></tr>)") + "\n";
-  for(auto cat1: tdm.children("cat"))
-  {
-    for(auto cat2: cat1.children("cat"))
-    {
+    s +=
+        std::string(
+            R"(<tr><td colspan="2"><b>Demonstration</b></td><td><b>Description</b></td></tr>)") +
+        "\n";
+  for (auto cat1 : tdm.children("cat")) {
+    for (auto cat2 : cat1.children("cat")) {
       s += export_demos(cat2, lg);
     }
     s += export_demos(cat1, lg);
@@ -82,29 +78,24 @@ std::string OCVDemo::export_html(Localized::Language lg)
   return s;
 }
 
-void OCVDemo::export_captures()
-{
-  for(auto cat1: tdm.children("cat"))
-  {
-    for(auto cat2: cat1.children("cat"))
-    {
+void OCVDemo::export_captures() {
+  for (auto cat1 : tdm.children("cat")) {
+    for (auto cat2 : cat1.children("cat")) {
       export_captures(cat2);
     }
     export_captures(cat1);
   }
 }
 
-void OCVDemo::export_captures(utils::model::Node &cat)
-{
+void OCVDemo::export_captures(utils::model::Node &cat) {
   auto nb_demos = cat.get_children_count("demo");
-  for(auto i = 0u; i < nb_demos; i++)
-  {
+  for (auto i = 0u; i < nb_demos; i++) {
 
     auto demo = cat.get_child_at("demo", i);
     auto id = demo.get_attribute_as_string("name");
 
     // Quelques démo requièrent une caméra pour fonctionner
-    if(!demo.get_attribute_as_boolean("export"))
+    if (!demo.get_attribute_as_boolean("export"))
       continue;
 
     trace_majeure("Export démo [%s]...", id.c_str());
@@ -119,10 +110,9 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     // Il n'y a qu'un seul thread GTK => doit laisser la main
     // aux autres tâches
-    //signal_une_trame_traitee.wait(); => non car bloquant pour GTK
-    while(!signal_une_trame_traitee.is_raised())
-    {
-      if(Gtk::Main::events_pending())
+    // signal_une_trame_traitee.wait(); => non car bloquant pour GTK
+    while (!signal_une_trame_traitee.is_raised()) {
+      if (Gtk::Main::events_pending())
         Gtk::Main::iteration();
     }
 
@@ -132,10 +122,9 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     s += id + ".jpg";
 
-    Mat A = mosaique.get_global_img();
+    cv::Mat A = mosaique.get_global_img();
 
-    if(A.data == nullptr)
-    {
+    if (A.data == nullptr) {
       avertissement("A.data == nullptr");
       continue;
     }
@@ -145,9 +134,7 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     trace_verbeuse("taille finale = %d * %d.", A.cols, A.rows);
     imwrite(s, A);
-    if(!utils::files::file_exists(s))
+    if (!utils::files::file_exists(s))
       avertissement("Echec lors de la sauvegarde du fichier.");
   }
 }
-
-

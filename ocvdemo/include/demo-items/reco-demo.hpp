@@ -24,83 +24,76 @@
 #define RECO_DEMO_HPP_
 
 #include "ocvdemo-item.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
 #include "opencv2/features2d/features2d.hpp"
+#include "opencv2/objdetect/objdetect.hpp"
 
-class MatchDemo: public OCVDemoItem
-{
+class MatchDemo : public OCVDemoItem {
 public:
   MatchDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
-  //void setup_model(Node &model);
+  // void setup_model(Node &model);
 private:
   bool lock;
   std::vector<cv::Mat> imgs;
 };
 
-
-class PanoDemo: public OCVDemoItem
-{
+class PanoDemo : public OCVDemoItem {
 public:
   PanoDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
   bool lock;
 };
 
-class CornerDemo: public OCVDemoItem
-{
+class CornerDemo : public OCVDemoItem {
 public:
   CornerDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
 };
 
-class ScoreShiTomasi: public OCVDemoItem
-{
+class ScoreShiTomasi : public OCVDemoItem {
 public:
   ScoreShiTomasi();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
 };
 
-class VisageDemo: public OCVDemoItem
-{
+class VisageDemo : public OCVDemoItem {
 public:
   VisageDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
-  CascadeClassifier face_cascade, eyes_cascade;
-  RNG rng;
+  cv::CascadeClassifier face_cascade, eyes_cascade;
+  cv::RNG rng;
 };
 
-
-class CascGenDemo: public OCVDemoItem
-{
+class CascGenDemo : public OCVDemoItem {
 public:
   CascGenDemo(std::string id);
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
   std::vector<std::string> cnames;
-  CascadeClassifier cascade[3];
-  RNG rng;
+  cv::CascadeClassifier cascade[3];
+  cv::RNG rng;
   bool cascade_ok;
 };
 
-class DemoHog: public OCVDemoItem
-{
+class DemoHog : public OCVDemoItem {
 public:
   DemoHog();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
-
-class DemoFaceRecognizer: public OCVDemoItem
-{
+class DemoFaceRecognizer : public OCVDemoItem {
 public:
   DemoFaceRecognizer();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
-
 
 #endif /* MORPHO_DEMO_HPP_ */

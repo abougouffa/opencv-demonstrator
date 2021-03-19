@@ -27,11 +27,11 @@
 #include "opencv2/video/video.hpp"
 
 /** @brief Démonstration flux optique */
-class OptFlowDemo: public OCVDemoItem
-{
+class OptFlowDemo : public OCVDemoItem {
 public:
   OptFlowDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
   cv::Mat Iprec;
   bool reset;
@@ -39,39 +39,37 @@ private:
 };
 
 /** @brief Démonstration soustraction d'arrière-plan */
-class SousArrierePlanDemo: public OCVDemoItem
-{
+class SousArrierePlanDemo : public OCVDemoItem {
 public:
   SousArrierePlanDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
 private:
-  //cv::BackgroundSubtractorMOG mog;
-  Ptr<cv::BackgroundSubtractor> algo;
-  Mat mhi;
+  // cv::BackgroundSubtractorMOG mog;
+  cv::Ptr<cv::BackgroundSubtractor> algo;
+  cv::Mat mhi;
   int nframes;
   int osel;
   void update_sel(int nsel);
 };
 
 /** Démonstration algorithme camshift */
-class CamShiftDemo: public OCVDemoItem
-{
+class CamShiftDemo : public OCVDemoItem {
 public:
   CamShiftDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
   void set_roi(const cv::Mat &I, const cv::Rect &new_roi);
+
 private:
   cv::MatND hist;
   cv::Rect trackwindow;
   bool bp_init_ok;
 };
 
-class DemoVideoStab: public OCVDemoItem
-{
+class DemoVideoStab : public OCVDemoItem {
 public:
   DemoVideoStab();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
-
 
 #endif

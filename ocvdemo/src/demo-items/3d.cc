@@ -3,7 +3,8 @@
 
    Démonstrations inspirées du livre :
     G. Bradski, Learning OpenCV: Computer vision with the OpenCV library, 2008
-    Et aussi d'après l'exemple fourni avec opencv: opencv/sources/samples/cpp/stereo_calib.cpp
+    Et aussi d'après l'exemple fourni avec opencv:
+ opencv/sources/samples/cpp/stereo_calib.cpp
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -31,54 +32,44 @@
 #include <iostream>
 
 #ifndef M_PI
-# define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
-
 
 StereoCalDemo *StereoCalDemo::instance;
 StereoCalResultats stereo_cal;
 
-
-class MatText
-{
+class MatText {
 public:
-  MatText(Mat I)
-  {
+  MatText(cv::Mat I) {
     this->I = I;
-    x = 0; y = 25;
+    x = 0;
+    y = 25;
     last_dy = 20;
   }
 
-  inline void print(std::string s, ...)
-  {
+  inline void print(std::string s, ...) {
     va_list ap;
     va_start(ap, s);
     printv(s, ap);
     va_end(ap);
   }
-private:
 
-  inline void printv(std::string s, va_list ap)
-  {
+private:
+  inline void printv(std::string s, va_list ap) {
     char tmp_buffer[1000];
-    if(vsnprintf(tmp_buffer, 1000, s.c_str(), ap) > 0)
+    if (vsnprintf(tmp_buffer, 1000, s.c_str(), ap) > 0)
       printi1(std::string(tmp_buffer));
   }
 
-  void printi1(const std::string &s)
-  {
+  void printi1(const std::string &s) {
     std::string tamp;
-    for(auto i = 0u; i < s.length(); i++)
-    {
-      if(s[i] == '\n')
-      {
+    for (auto i = 0u; i < s.length(); i++) {
+      if (s[i] == '\n') {
         printi(tamp);
         tamp = "";
         x = 0;
         y += last_dy;
-      }
-      else
-      {
+      } else {
         char c[2];
         c[0] = s[i];
         c[1] = 0;
@@ -88,67 +79,52 @@ private:
     printi(tamp);
   }
 
-  void printi(const std::string &s)
-  {
-    if(s.size() == 0)
+  void printi(const std::string &s) {
+    if (s.size() == 0)
       return;
     int baseLine;
     double tscale = 2.0;
-    auto font = FONT_HERSHEY_COMPLEX_SMALL;
-    Size si =  getTextSize(s, font, tscale, 1.2, &baseLine);
-    putText(I, s,
-            Point(x, y),
-            font,
-            tscale,
-            Scalar(255,255,255),
-            1.2,
-            CV_AA);
+    auto font = cv::FONT_HERSHEY_COMPLEX_SMALL;
+    cv::Size si = getTextSize(s, font, tscale, 1.2, &baseLine);
+    putText(I, s, cv::Point(x, y), font, tscale, cv::Scalar(255, 255, 255), 1.2,
+            cv::LINE_AA);
     last_dy = (last_dy > (si.height + 2)) ? last_dy : (si.height + 2);
     x += si.width;
-    if(x >= (unsigned int) I.cols)
-    {
+    if (x >= (unsigned int)I.cols) {
       x = 0;
       y += si.height + 2;
     }
   }
-  Mat I;
+  cv::Mat I;
   uint32_t x, y;
   int last_dy;
 };
 
+StereoFMatDemo::StereoFMatDemo() { props.id = "stereo-fmat"; }
 
-StereoFMatDemo::StereoFMatDemo()
-{
-  props.id = "stereo-fmat";
-}
-
-int StereoFMatDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
+int StereoFMatDemo::proceed(OCVDemoItemInput &input,
+                            OCVDemoItemOutput &output) {
   return 0;
 }
 
-StereoCalDemo *StereoCalDemo::get_instance()
-{
-  return instance;
-}
+StereoCalDemo *StereoCalDemo::get_instance() { return instance; }
 
-int StereoCalDemo::lookup_corners(cv::Mat &I,
-                                  cv::Mat &O,
+int StereoCalDemo::lookup_corners(cv::Mat &I, cv::Mat &O,
                                   utils::model::Node &model,
-                                  std::vector<cv::Point2f> &coins)
-{
+                                  std::vector<cv::Point2f> &coins) {
   unsigned int bw = input.model.get_attribute_as_int("bw"),
                bh = input.model.get_attribute_as_int("bh");
-  cv::Size dim_damier(bw,bh);
+  cv::Size dim_damier(bw, bh);
 
   O = I.clone();
 
   bool found = cv::findChessboardCorners(I, dim_damier, coins,
-      CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+                                         cv::CALIB_CB_ADAPTIVE_THRESH |
+                                             cv::CALIB_CB_NORMALIZE_IMAGE);
 
-  //trace_verbeuse("Image %d: trouvé %d coins.", k, coins.size());
+  // trace_verbeuse("Image %d: trouvé %d coins.", k, coins.size());
 
-# if 0
+#if 0
   // Résolution d'ambiguité si damier carré
   if((coins.size() == bh * bw) && (bh == bw))
   {
@@ -181,31 +157,30 @@ int StereoCalDemo::lookup_corners(cv::Mat &I,
         std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
     }
   }
-# endif
+#endif
 
-
-  if(!found || (coins.size() < 5))
-  {
+  if (!found || (coins.size() < 5)) {
     output.errmsg = utils::langue.get_item("coins-non-trouves");
     avertissement("%s", output.errmsg.c_str());
     avertissement("Coins.size = %d.", coins.size());
     return -1;
   }
   cv::Mat gris;
-  cv::cvtColor(I, gris, CV_BGR2GRAY);
-  cv::cornerSubPix(gris, coins, Size(11,11), Size(-1,-1),
-                   TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
+  cv::cvtColor(I, gris, cv::COLOR_BGR2GRAY);
+  cv::cornerSubPix(
+      gris, coins, cv::Size(11, 11), cv::Size(-1, -1),
+      cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 30,
+                       0.01));
 
   // Dessin des coins
-  cv::drawChessboardCorners(O, dim_damier, Mat(coins), found);
+  cv::drawChessboardCorners(O, dim_damier, cv::Mat(coins), found);
 
   return 0;
 }
 
-
-
 // Stereo cal demo :
-//  - (1) une démo à partir de vidéo (cu1), une autre démo à partir d'un jeu d'images (cu2) ?
+//  - (1) une démo à partir de vidéo (cu1), une autre démo à partir d'un jeu
+//  d'images (cu2) ?
 //  - (2) Une démo qui gère les deux
 //
 //  cu1 : nécessite boutons suivants :
@@ -213,15 +188,14 @@ int StereoCalDemo::lookup_corners(cv::Mat &I,
 //     b2: calibration à partir des paires déjà trouvées
 //
 
-StereoCalLiveDemo::StereoCalLiveDemo()
-{
+StereoCalLiveDemo::StereoCalLiveDemo() {
   props.id = "stereo-cal-live";
   props.input_min = 2;
   props.input_max = 2;
 }
 
-int StereoCalLiveDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
+int StereoCalLiveDemo::proceed(OCVDemoItemInput &input,
+                               OCVDemoItemOutput &output) {
   unsigned int bw = input.model.get_attribute_as_int("bw"),
                bh = input.model.get_attribute_as_int("bh");
 
@@ -231,14 +205,11 @@ int StereoCalLiveDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outpu
 
   auto scal = StereoCalDemo::get_instance();
 
-  for(auto i = 0u; i < 2; i++)
-    scal->lookup_corners(input.images[i],
-                         output.images[i],
-                         input.model,
+  for (auto i = 0u; i < 2; i++)
+    scal->lookup_corners(input.images[i], output.images[i], input.model,
                          coins[i]);
 
-  if((coins[0].size() == bw * bh) && (coins[1].size() == bw * bh))
-  {
+  if ((coins[0].size() == bw * bh) && (coins[1].size() == bw * bh)) {
     pairs.push_back(coins[0]);
     pairs.push_back(coins[1]);
     infos("Nouvelle paires ajoutée (%d au total).", pairs.size() / 2);
@@ -247,12 +218,10 @@ int StereoCalLiveDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outpu
   return 0;
 }
 
-
 //////////////////////////////////////////////////////////
 /// STEREO CALIBRATION DEMO                       ////////
 //////////////////////////////////////////////////////////
-StereoCalDemo::StereoCalDemo()
-{
+StereoCalDemo::StereoCalDemo() {
   instance = this;
   props.id = "stereo-cal";
   props.input_min = 2;
@@ -260,16 +229,13 @@ StereoCalDemo::StereoCalDemo()
   stereo_cal.valide = false;
 }
 
-int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
+int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) {
   stereo_cal.valide = false;
 
   output.images[0] = input.images[0];
   cv::Size dim_img = input.images[0].size();
 
-
-  if(dim_img != input.images[1].size())
-  {
+  if (dim_img != input.images[1].size()) {
     avertissement("%s: images de dim différentes.");
     output.errmsg = "Les 2 images / vidéo doivent être de même résolution.";
     return -1;
@@ -278,9 +244,10 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   // Nombre de coins (x,y)
   unsigned int bw = input.model.get_attribute_as_int("bw"),
                bh = input.model.get_attribute_as_int("bh");
-  cv::Size dim_damier(bw,bh);
+  cv::Size dim_damier(bw, bh);
 
-  // Coordonnées 3D des coins du damier, dans le repère lié au damier (e.g. Z = 0)
+  // Coordonnées 3D des coins du damier, dans le repère lié au damier (e.g. Z =
+  // 0)
   std::vector<std::vector<cv::Point3f>> points_obj;
   // Coordonnées 2D des coins du damier, dans les deux images
 
@@ -300,16 +267,14 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   points_img[1].resize(npaires);
 
   output.nout = 2 * npaires;
-  for(auto i = 0u; i < 2 * npaires; i++)
+  for (auto i = 0u; i < 2 * npaires; i++)
     output.names[i] = "Image " + utils::str::int2str(i);
 
   trace_verbeuse(" 1. Recherche des coins...");
-  for(auto p = 0u; p < npaires; p++)
-  {
-    for(auto k = 0; k < 2; k++)
-    {
-      if(lookup_corners(input.images[2*p+k], output.images[2*p+k], input.model, points_img[k][p]))
-      {
+  for (auto p = 0u; p < npaires; p++) {
+    for (auto k = 0; k < 2; k++) {
+      if (lookup_corners(input.images[2 * p + k], output.images[2 * p + k],
+                         input.model, points_img[k][p])) {
         avertissement("Paire %d, image %d: coins non trouvés.", p, k);
         return -1;
       }
@@ -319,49 +284,46 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   trace_verbeuse(" 2. Calibration...");
 
   // Calcul des coordonnées 3D
-  for(auto j = 0; j < dim_damier.height; j++ )
-    for(auto k = 0; k < dim_damier.width; k++ )
-      points_obj[0].push_back(cv::Point3f(k * largeur_carre, j * largeur_carre, 0));
-  for(auto j = 1u; j < npaires; j++)
+  for (auto j = 0; j < dim_damier.height; j++)
+    for (auto k = 0; k < dim_damier.width; k++)
+      points_obj[0].push_back(
+          cv::Point3f(k * largeur_carre, j * largeur_carre, 0));
+  for (auto j = 1u; j < npaires; j++)
     points_obj[j] = points_obj[0];
 
-
   // Initialisation des matrices de caméra (identité)
-  for(auto i = 0u; i < 2; i++)
-    stereo_cal.matrices_cameras[i] = Mat::eye(3, 3, CV_64F);
+  for (auto i = 0u; i < 2; i++)
+    stereo_cal.matrices_cameras[i] = cv::Mat::eye(3, 3, CV_64F);
 
-  float rms = cv::stereoCalibrate(points_obj, points_img[0], points_img[1],
-      stereo_cal.matrices_cameras[0], stereo_cal.dcoefs[0],
-      stereo_cal.matrices_cameras[1], stereo_cal.dcoefs[1],
-      dim_img,
-      stereo_cal.R, stereo_cal.T, stereo_cal.E, stereo_cal.F,
-      CV_CALIB_FIX_ASPECT_RATIO |
-      CV_CALIB_ZERO_TANGENT_DIST |
-      //CV_CALIB_FIX_FOCAL_LENGTH |
-      CV_CALIB_SAME_FOCAL_LENGTH |
-      CV_CALIB_RATIONAL_MODEL |
-      CV_CALIB_FIX_K3 | CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
+  float rms = cv::stereoCalibrate(
+      points_obj, points_img[0], points_img[1], stereo_cal.matrices_cameras[0],
+      stereo_cal.dcoefs[0], stereo_cal.matrices_cameras[1],
+      stereo_cal.dcoefs[1], dim_img, stereo_cal.R, stereo_cal.T, stereo_cal.E,
+      stereo_cal.F,
+      cv::CALIB_FIX_ASPECT_RATIO | cv::CALIB_ZERO_TANGENT_DIST |
+          // CV_CALIB_FIX_FOCAL_LENGTH |
+          cv::CALIB_SAME_FOCAL_LENGTH | cv::CALIB_RATIONAL_MODEL |
+          cv::CALIB_FIX_K3 | cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
 
-  trace_verbeuse("Erreur RMS calibration: %.3f.", (float) rms);
+  trace_verbeuse("Erreur RMS calibration: %.3f.", (float)rms);
 
   cv::stereoRectify(stereo_cal.matrices_cameras[0], stereo_cal.dcoefs[0],
-      stereo_cal.matrices_cameras[1], stereo_cal.dcoefs[1],
-      dim_img, stereo_cal.R, stereo_cal.T,
-      stereo_cal.rectif_R[0], stereo_cal.rectif_R[1],
-      stereo_cal.rectif_P[0], stereo_cal.rectif_P[1],
-      stereo_cal.Q,
-      CALIB_ZERO_DISPARITY,
-      1 // 0 : Seulement les pixels valides sont visibles,
-      // 1 : tous les pixels (y compris noirs) sont visibles
-      );
+                    stereo_cal.matrices_cameras[1], stereo_cal.dcoefs[1],
+                    dim_img, stereo_cal.R, stereo_cal.T, stereo_cal.rectif_R[0],
+                    stereo_cal.rectif_R[1], stereo_cal.rectif_P[0],
+                    stereo_cal.rectif_P[1], stereo_cal.Q,
+                    cv::CALIB_ZERO_DISPARITY,
+                    1 // 0 : Seulement les pixels valides sont visibles,
+                      // 1 : tous les pixels (y compris noirs) sont visibles
+  );
 
   // Calcul des LUT pour la rectification de caméra
-  for(auto k = 0u; k < 2; k++)
-    cv::initUndistortRectifyMap(
-        stereo_cal.matrices_cameras[k], stereo_cal.dcoefs[k],
-        stereo_cal.rectif_R[k], stereo_cal.rectif_P[k],
-        dim_img, CV_32FC1, //CV_16SC2,
-        stereo_cal.rmap[k][0], stereo_cal.rmap[k][1]);
+  for (auto k = 0u; k < 2; k++)
+    cv::initUndistortRectifyMap(stereo_cal.matrices_cameras[k],
+                                stereo_cal.dcoefs[k], stereo_cal.rectif_R[k],
+                                stereo_cal.rectif_P[k], dim_img,
+                                CV_32FC1, // CV_16SC2,
+                                stereo_cal.rmap[k][0], stereo_cal.rmap[k][1]);
 
   // A FAIRE:
   // - Vérifier qualité de la calibration
@@ -370,79 +332,64 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
-
-RectificationDemo::RectificationDemo()
-{
+RectificationDemo::RectificationDemo() {
   props.id = "rectif";
   props.input_min = 2;
   props.input_max = 2;
 }
 
-
-static void rectification(const cv::Mat &I0, const cv::Mat &I1,
-                          cv::Mat &O0, cv::Mat &O1)
-{
-  cv::remap(I0, O0,
-            stereo_cal.rmap[0][0],
-            stereo_cal.rmap[0][1],
-            CV_INTER_LINEAR);
-  cv::remap(I1, O1,
-            stereo_cal.rmap[1][0],
-            stereo_cal.rmap[1][1],
-            CV_INTER_LINEAR);
+static void rectification(const cv::Mat &I0, const cv::Mat &I1, cv::Mat &O0,
+                          cv::Mat &O1) {
+  cv::remap(I0, O0, stereo_cal.rmap[0][0], stereo_cal.rmap[0][1],
+            cv::INTER_LINEAR);
+  cv::remap(I1, O1, stereo_cal.rmap[1][0], stereo_cal.rmap[1][1],
+            cv::INTER_LINEAR);
 }
 
-int RectificationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
+int RectificationDemo::proceed(OCVDemoItemInput &input,
+                               OCVDemoItemOutput &output) {
   output.nout = 2;
   output.names[0] = "Image 1";
   output.names[1] = "Image 2";
 
-  if(!stereo_cal.valide)
-  {
+  if (!stereo_cal.valide) {
     output.errmsg = utils::langue.get_item("pas-de-cal-stereo");
     return -1;
   }
 
-  for(auto i = 0u; i < 2; i++)
-    rectification(input.images[0], input.images[1],
-                  output.images[0], output.images[1]);
+  for (auto i = 0u; i < 2; i++)
+    rectification(input.images[0], input.images[1], output.images[0],
+                  output.images[1]);
   return 0;
 }
-
 
 //////////////////////////////////////////////////////////
 /// DEMO LIGNES EPIPOLAIRES                       ////////
 //////////////////////////////////////////////////////////
-EpiDemo::EpiDemo()
-{
+EpiDemo::EpiDemo() {
   props.id = "epi";
   props.input_min = 2;
   props.input_max = 2;
 }
 
-void EpiDemo::raz()
-{
+void EpiDemo::raz() {
   points[0].clear();
   points[1].clear();
 }
 
-void EpiDemo::on_mouse(int x, int y, int evt, int wnd)
-{
+void EpiDemo::on_mouse(int x, int y, int evt, int wnd) {
   trace_verbeuse("epi demo souris %d, %d.", x, y);
-  Point2f pt(x,y);
+  cv::Point2f pt(x, y);
   points[wnd].push_back(pt);
   OCVDemoItemRefresh e;
   CProvider<OCVDemoItemRefresh>::dispatch(e);
 }
 
-int EpiDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
+int EpiDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) {
   // L'utilisateur choisi des points sur l'image 1
   // On calcule les épilignes correspondantes sur l'image 2
 
-  if(!stereo_cal.valide)
-  {
+  if (!stereo_cal.valide) {
     output.errmsg = utils::langue.get_item("pas-de-cal-stereo");
     return -1;
   }
@@ -451,51 +398,45 @@ int EpiDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.images[0] = input.images[0].clone();
   output.images[1] = input.images[1].clone();
 
-  for(auto k = 0u; k < 2; k++)
-  {
+  for (auto k = 0u; k < 2; k++) {
     auto npts = points[k].size();
 
-    if(npts == 0)
+    if (npts == 0)
       continue;
 
-    //Mat F = stereo_cal.F;
+    // Mat F = stereo_cal.F;
 
     std::vector<cv::Vec3f> epilignes;
-    cv::computeCorrespondEpilines(cv::Mat(points[k]), 1 + k, stereo_cal.F, epilignes);
+    cv::computeCorrespondEpilines(cv::Mat(points[k]), 1 + k, stereo_cal.F,
+                                  epilignes);
 
     int sx = input.images[k].cols;
 
     cv::RNG rng(0);
-    for(auto i = 0u; i < npts; i++)
-    {
-      cv::Scalar color(rng(256),rng(256),rng(256));
-      cv::line(output.images[1-k],
-               cv::Point(0, -epilignes[i][2]/epilignes[i][1]),
-               cv::Point(sx,-(epilignes[i][2]+epilignes[i][0]*sx)/epilignes[i][1]),
+    for (auto i = 0u; i < npts; i++) {
+      cv::Scalar color(rng(256), rng(256), rng(256));
+      cv::line(output.images[1 - k],
+               cv::Point(0, -epilignes[i][2] / epilignes[i][1]),
+               cv::Point(sx, -(epilignes[i][2] + epilignes[i][0] * sx) /
+                                 epilignes[i][1]),
                color);
-      cv::circle(output.images[k], points[k][i], 3, color, -1, CV_AA);
+      cv::circle(output.images[k], points[k][i], 3, color, -1, cv::LINE_AA);
     }
   }
   return 0;
 }
 
-
-
 //////////////////////////////////////////////////////////
 /// DISPARITY MAP DEMO                            ////////
 //////////////////////////////////////////////////////////
-DispMapDemo::DispMapDemo()
-{
+DispMapDemo::DispMapDemo() {
   props.id = "disp-map";
   props.input_min = 2;
   props.input_max = 2;
 }
 
-
-int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
-  if(input.images.size() != 2)
-  {
+int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) {
+  if (input.images.size() != 2) {
     output.errmsg = "Disparity map demo: needs 2 input images.";
     return -1;
   }
@@ -504,62 +445,61 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   I[0] = input.images[0].clone();
   I[1] = input.images[1].clone();
 
-
-  if(input.model.get_attribute_as_boolean("rectifie"))
-  {
-    if(!stereo_cal.valide)
-    {
+  if (input.model.get_attribute_as_boolean("rectifie")) {
+    if (!stereo_cal.valide) {
       output.errmsg = utils::langue.get_item("pas-de-cal-stereo");
       return -1;
     }
-    for(auto i = 0u; i < 2; i++)
+    for (auto i = 0u; i < 2; i++)
       rectification(I[0], I[1], I[0], I[1]);
   }
 
-  Ptr<StereoMatcher> matcher;
+  cv::Ptr<cv::StereoMatcher> matcher;
 
   int sel = input.model.get_attribute_as_int("sel");
 
-  if(sel == 0)
-  {
-    auto sb = StereoBM::create();
+  if (sel == 0) {
+    auto sb = cv::StereoBM::create();
     // Parameters below from Opencv/samples/stereo_match.cpp
     sb->setPreFilterCap(31);
     int bsize = input.model.get_attribute_as_int("bm/taille-bloc");
-    if((bsize & 1) == 0)
+    if ((bsize & 1) == 0)
       bsize++;
     sb->setBlockSize(bsize);
     sb->setMinDisparity(0);
-    sb->setNumDisparities(((I[0].cols/8) + 15) & -16);
-    sb->setTextureThreshold(input.model.get_attribute_as_int("bm/seuil-texture"));
-    sb->setUniquenessRatio(input.model.get_attribute_as_int("bm/ratio-unicite"));
-    sb->setSpeckleWindowSize(input.model.get_attribute_as_int("bm/speckles-fen"));
-    sb->setSpeckleRange(input.model.get_attribute_as_int("bm/speckles-intervalle"));
+    sb->setNumDisparities(((I[0].cols / 8) + 15) & -16);
+    sb->setTextureThreshold(
+        input.model.get_attribute_as_int("bm/seuil-texture"));
+    sb->setUniquenessRatio(
+        input.model.get_attribute_as_int("bm/ratio-unicite"));
+    sb->setSpeckleWindowSize(
+        input.model.get_attribute_as_int("bm/speckles-fen"));
+    sb->setSpeckleRange(
+        input.model.get_attribute_as_int("bm/speckles-intervalle"));
     sb->setDisp12MaxDiff(input.model.get_attribute_as_int("bm/disp-max-diff"));
     matcher = sb;
 
     // StereoBM ne supporte que des images en niveaux de gris
-    cvtColor(I[0], I[0], CV_BGR2GRAY);
-    cvtColor(I[1], I[1], CV_BGR2GRAY);
-  }
-  else if(sel == 1)
-  {
+    cv::cvtColor(I[0], I[0], cv::COLOR_BGR2GRAY);
+    cv::cvtColor(I[1], I[1], cv::COLOR_BGR2GRAY);
+  } else if (sel == 1) {
     // int minDisparity, int numDisparities, int blockSize,
-    matcher = StereoSGBM::create(0, 16 * 100, 7);
+    matcher = cv::StereoSGBM::create(0, 16 * 100, 7);
   }
 
-
-  Mat disp, disp8, dispf;
+  cv::Mat disp, disp8, dispf;
 
   matcher->compute(I[0], I[1], disp);
 
   // ==> 3 = CV_16S
-  trace_verbeuse("disp orig depth = %d, nchn = %d, size = %d * %d.", disp.depth(), disp.channels(), disp.rows, disp.cols);
+  trace_verbeuse("disp orig depth = %d, nchn = %d, size = %d * %d.",
+                 disp.depth(), disp.channels(), disp.rows, disp.cols);
 
   // !!!! disp.convertTo(dispf, CV_32F, 1. / 16);
   disp.convertTo(dispf, CV_32F, 1.);
 
-  trace_verbeuse("dispf depth = %d, nchn = %d, size = %d * %d.", dispf.depth(), dispf.channels(), dispf.rows, dispf.cols);
+  trace_verbeuse("dispf depth = %d, nchn = %d, size = %d * %d.", dispf.depth(),
+                 dispf.channels(), dispf.rows, dispf.cols);
 
   dispf = dispf * (1.0 / 16);
   /*{
@@ -575,26 +515,23 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     }
   }*/
 
-
-  normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+  cv::normalize(disp, disp8, 0, 255, cv::NormTypes::NORM_MINMAX, CV_8U);
   output.images[0] = disp8;
   output.names[0] = utils::langue.get_item("disp-map");
 
-
-  if(input.model.get_attribute_as_boolean("calc-prof"))
-  {
+  if (input.model.get_attribute_as_boolean("calc-prof")) {
     cv::Mat im3d(disp.size(), CV_32FC3);
     cv::reprojectImageTo3D(dispf, im3d, stereo_cal.Q, true);
     int pairs[2] = {2, 0}; // 2 -> 0
     cv::Mat z(im3d.size(), CV_32F);
 
-
-    printf("im3d: %d * %d: im3d[..] = ", im3d.cols, im3d.rows);//%f, %f, %f.",
-        //);//, im3d.at<Vec3f>(50,50)[0],
-//        , im3d.at<Vec3f>(50,50)[0], , im3d.at<Vec3f>(50,50)[0]);
-    std::cout << im3d.at<Vec3f>(50,50) << std::endl;
-    std::cout << im3d.at<Vec3f>(51,50) << std::endl;
-    std::cout << im3d.at<Vec3f>(100,50) << std::endl;
+    printf("im3d: %d * %d: im3d[..] = ", im3d.cols,
+           im3d.rows); //%f, %f, %f.",
+                       //);//, im3d.at<Vec3f>(50,50)[0],
+    //        , im3d.at<Vec3f>(50,50)[0], , im3d.at<Vec3f>(50,50)[0]);
+    std::cout << im3d.at<cv::Vec3f>(50, 50) << std::endl;
+    std::cout << im3d.at<cv::Vec3f>(51, 50) << std::endl;
+    std::cout << im3d.at<cv::Vec3f>(100, 50) << std::endl;
 
     cv::mixChannels(&im3d, 1, &z, 1, pairs, 1);
 
@@ -605,14 +542,12 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     float zmax = input.model.get_attribute_as_float("zmax");
 
     auto mask = z > zmax;
-    z.setTo(Scalar(zmax), mask);
-
-
+    z.setTo(cv::Scalar(zmax), mask);
 
     z = zmax - z;
 
     cv::Mat z8;
-    normalize(z, z8, 0, 255, CV_MINMAX, CV_8U);
+    cv::normalize(z, z8, 0, 255, cv::NormTypes::NORM_MINMAX, CV_8U);
     output.images[0] = z;
     output.names[0] = utils::langue.get_item("prof");
   }
@@ -620,118 +555,106 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
-
-
 //////////////////////////////////////////////////////////
 /// CAMERA CALIBRATION DEMO                       ////////
 //////////////////////////////////////////////////////////
 
-CamCalDemo::CamCalDemo()
-{
+CamCalDemo::CamCalDemo() {
   props.id = "cam-cal";
   output.nout = 3;
   output.names[0] = "Detection des coins";
   output.names[1] = "Distortion corrigee";
 }
 
-
-int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
-  Mat Ig;
+int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) {
+  cv::Mat Ig;
   int sel = input.model.get_attribute_as_int("sel");
   int bw = input.model.get_attribute_as_int("bw");
   int bh = input.model.get_attribute_as_int("bh");
 
+  cv::Size board_size(bw, bh);
+  std::vector<std::vector<cv::Point2f>> imagePoints;
+  std::vector<cv::Point2f> pointbuf;
 
+  cv::cvtColor(input.images[0], Ig, cv::COLOR_BGR2GRAY);
 
-  Size board_size(bw,bh);
-  std::vector<std::vector<Point2f>> imagePoints;
-  std::vector<Point2f> pointbuf;
-
-  cvtColor(input.images[0], Ig, CV_BGR2GRAY);
-
-
-  output.images[2] = cv::Mat(/*Ig.size()*/cv::Size(480,640), CV_8UC3);
+  output.images[2] = cv::Mat(/*Ig.size()*/ cv::Size(480, 640), CV_8UC3);
   output.images[1] = output.images[2];
 
   bool trouve;
-  if(sel == 0)
-  {
+  if (sel == 0) {
     trouve = cv::findChessboardCorners(Ig, board_size, pointbuf,
-      CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_FAST_CHECK | CALIB_CB_NORMALIZE_IMAGE);
+                                       cv::CALIB_CB_ADAPTIVE_THRESH |
+                                           cv::CALIB_CB_FAST_CHECK |
+                                           cv::CALIB_CB_NORMALIZE_IMAGE);
     // improve the found corners' coordinate accuracy
-     if(trouve)
-       cv::cornerSubPix(Ig, pointbuf, Size(11,11),
-         Size(-1,-1), TermCriteria( TermCriteria::EPS+TermCriteria::COUNT, 30, 0.1 ));
-  }
-  else if(sel == 1)
-    trouve = cv::findCirclesGrid(Ig, board_size, pointbuf );
+    if (trouve)
+      cv::cornerSubPix(
+          Ig, pointbuf, cv::Size(11, 11), cv::Size(-1, -1),
+          cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 30,
+                           0.1));
+  } else if (sel == 1)
+    trouve = cv::findCirclesGrid(Ig, board_size, pointbuf);
   else
-    trouve = cv::findCirclesGrid(Ig, board_size, pointbuf, CALIB_CB_ASYMMETRIC_GRID );
+    trouve = cv::findCirclesGrid(Ig, board_size, pointbuf,
+                                 cv::CALIB_CB_ASYMMETRIC_GRID);
 
+  // cvtColor(I, O[0], CV_GRAY2BGR);
 
-  //cvtColor(I, O[0], CV_GRAY2BGR);
-
-  Mat Ior = input.images[0].clone();
+  cv::Mat Ior = input.images[0].clone();
   output.images[0] = Ior.clone();
-  if(trouve)
-   cv::drawChessboardCorners(output.images[0], board_size, Mat(pointbuf), trouve);
+  if (trouve)
+    cv::drawChessboardCorners(output.images[0], board_size, cv::Mat(pointbuf),
+                              trouve);
 
-  trace_majeure("Trouvé %d coins (found = %d).",
-      pointbuf.size(), (int) trouve);
+  trace_majeure("Trouvé %d coins (found = %d).", pointbuf.size(), (int)trouve);
 
-  if(trouve)
-  {
-    Mat distCoeffs;
-    Mat cameraMatrix;
-    cameraMatrix = Mat::eye(3, 3, CV_64F);
-    //if( flags & CALIB_FIX_ASPECT_RATIO )
-      //  cameraMatrix.at<double>(0,0) = aspectRatio;
-    distCoeffs = Mat::zeros(8, 1, CV_64F);
+  if (trouve) {
+    cv::Mat distCoeffs;
+    cv::Mat cameraMatrix;
+    cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
+    // if( flags & CALIB_FIX_ASPECT_RATIO )
+    //  cameraMatrix.at<double>(0,0) = aspectRatio;
+    distCoeffs = cv::Mat::zeros(8, 1, CV_64F);
 
     float square_size = 1;
 
-    std::vector<std::vector<Point3f> > objectPoints(1);
-    std::vector<Point3f> &corners = objectPoints[0];
-    if(sel <= 1)
-    {
-      for( int i = 0; i < board_size.height; i++ )
-            for( int j = 0; j < board_size.width; j++ )
-                corners.push_back(Point3f(float(j*square_size),
-                                          float(i*square_size), 0));
-    }
-    else
-    {
-      for( int i = 0; i < board_size.height; i++ )
-          for( int j = 0; j < board_size.width; j++ )
-              corners.push_back(Point3f(float((2*j + i % 2)*square_size),
-                                        float(i*square_size), 0));
+    std::vector<std::vector<cv::Point3f>> objectPoints(1);
+    std::vector<cv::Point3f> &corners = objectPoints[0];
+    if (sel <= 1) {
+      for (int i = 0; i < board_size.height; i++)
+        for (int j = 0; j < board_size.width; j++)
+          corners.push_back(
+              cv::Point3f(float(j * square_size), float(i * square_size), 0));
+    } else {
+      for (int i = 0; i < board_size.height; i++)
+        for (int j = 0; j < board_size.width; j++)
+          corners.push_back(cv::Point3f(float((2 * j + i % 2) * square_size),
+                                        float(i * square_size), 0));
     }
 
     imagePoints.push_back(pointbuf);
-    objectPoints.resize(imagePoints.size(),objectPoints[0]);
+    objectPoints.resize(imagePoints.size(), objectPoints[0]);
 
-    std::vector<Mat> rvecs, tvecs;
+    std::vector<cv::Mat> rvecs, tvecs;
     // Fonction obsoléte ?
-    double rms = cv::calibrateCamera(objectPoints,
-                                     imagePoints, Ior.size(),
-                    cameraMatrix, distCoeffs, rvecs, tvecs,
-                    CALIB_FIX_K4 | CALIB_FIX_K5);
+    double rms = cv::calibrateCamera(objectPoints, imagePoints, Ior.size(),
+                                     cameraMatrix, distCoeffs, rvecs, tvecs,
+                                     cv::CALIB_FIX_K4 | cv::CALIB_FIX_K5);
     infos("RMS error reported by calibrateCamera: %g\n", rms);
-
 
     cv::undistort(Ior, output.images[1], cameraMatrix, distCoeffs);
 
-    Size sz = Ior.size();
-    sz.height = sz.width = max(sz.width, sz.height);
-    sz.height = sz.width = max(sz.width, 500);
+    cv::Size sz = Ior.size();
+    sz.height = sz.width = cv::max(sz.width, sz.height);
+    sz.height = sz.width = cv::max(sz.width, 500);
 
     output.images[2] = cv::Mat::zeros(sz, CV_8UC3);
 
     double fovx, fovy, focal, ar;
-    Point2d ppoint;
-    cv::calibrationMatrixValues(cameraMatrix, Ior.size(), 1, 1, fovx, fovy, focal, ppoint, ar);
-
+    cv::Point2d ppoint;
+    cv::calibrationMatrixValues(cameraMatrix, Ior.size(), 1, 1, fovx, fovy,
+                                focal, ppoint, ar);
 
     MatText mt(output.images[2]);
 
@@ -739,8 +662,9 @@ int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     mt.print("Camera matrix:\n");
     str << cameraMatrix << "\n";
-    mt.print("Focal : %.2f, %.2f, %.2f\n", (float) fovx, (float) fovy, (float) focal);
-    mt.print("Point principal: %.2f, %.2f\n", (float) ppoint.x, (float) ppoint.y);
+    mt.print("Focal : %.2f, %.2f, %.2f\n", (float)fovx, (float)fovy,
+             (float)focal);
+    mt.print("Point principal: %.2f, %.2f\n", (float)ppoint.x, (float)ppoint.y);
 
     mt.print(str.str());
 
@@ -748,72 +672,65 @@ int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::namedWindow("essai", CV_WINDOW_NORMAL);
     cv::imshow("essai", tmp);
     cv::waitKey();*/
-    //bool ok = checkRange(cameraMatrix) && checkRange(distCoeffs);
-    //totalAvgErr = computeReprojectionErrors(objectPoints, imagePoints,
+    // bool ok = checkRange(cameraMatrix) && checkRange(distCoeffs);
+    // totalAvgErr = computeReprojectionErrors(objectPoints, imagePoints,
     //            rvecs, tvecs, cameraMatrix, distCoeffs, reprojErrs);
   }
 
   return 0;
 }
 
-DemoLocalisation3D::DemoLocalisation3D()
-{
+DemoLocalisation3D::DemoLocalisation3D() {
   props.id = "suivi-balle-3d";
   props.input_min = 2;
   props.input_max = 2;
 }
 
-int DemoLocalisation3D::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
-{
-  if(!stereo_cal.valide)
-  {
+int DemoLocalisation3D::proceed(OCVDemoItemInput &input,
+                                OCVDemoItemOutput &output) {
+  if (!stereo_cal.valide) {
     output.errmsg = utils::langue.get_item("pas-de-cal-stereo");
     return -1;
   }
 
-  Point balle_loc[2];
+  cv::Point balle_loc[2];
 
   output.nout = 3;
 
-  for(auto k = 0u; k < 2; k++)
-  {
-    Mat &I = input.images[k];
-    Mat tsv, masque;
-    cvtColor(I, tsv, CV_BGR2HSV);
-    inRange(tsv, Scalar(18, 100, 128),
-            Scalar(30, 255, 255), masque);
-    Mat dst;
-    cv::distanceTransform(masque, dst, CV_DIST_L2, 3);
+  for (auto k = 0u; k < 2; k++) {
+    cv::Mat &I = input.images[k];
+    cv::Mat tsv, masque;
+    cv::cvtColor(I, tsv, cv::COLOR_BGR2HSV);
+    cv::inRange(tsv, cv::Scalar(18, 100, 128), cv::Scalar(30, 255, 255),
+                masque);
+    cv::Mat dst;
+    cv::distanceTransform(masque, dst, cv::DIST_L2, 3);
     cv::minMaxLoc(dst, nullptr, nullptr, nullptr, &balle_loc[k]);
 
     infos("Balle loc[%d]: %d, %d.", balle_loc[k].x, balle_loc[k].y);
 
-    Mat O = input.images[k].clone();
+    cv::Mat O = input.images[k].clone();
 
     // Position de la balle détectée
-    cv::line(O, balle_loc[0] - Point(5,0), balle_loc[0] + Point(5,0),
-             Scalar(0,0,255), 1);
-    cv::line(O, balle_loc[0] - Point(0,5), balle_loc[0] + Point(0,5),
-             Scalar(0,0,255), 1);
+    cv::line(O, balle_loc[0] - cv::Point(5, 0), balle_loc[0] + cv::Point(5, 0),
+             cv::Scalar(0, 0, 255), 1);
+    cv::line(O, balle_loc[0] - cv::Point(0, 5), balle_loc[0] + cv::Point(0, 5),
+             cv::Scalar(0, 0, 255), 1);
     output.images[k] = O;
   }
 
-  //Mat O = input.images[0].clone();
+  // Mat O = input.images[0].clone();
 
-  //p1(1) = Point2f(balle_loc[1].x,balle_loc[1].y);
+  // p1(1) = Point2f(balle_loc[1].x,balle_loc[1].y);
 
   // Calcul de la position en 3D
   cv::Point2f loc_rectifiee[2];
-  for(auto k = 0u; k < 2; k++)
-  {
-    Mat_<Point2f> p1(1,1), p2(1,1);
-    p1(0) = Point2f(balle_loc[0].x,balle_loc[0].y);
-    cv::undistortPoints(p1,
-         p2,
-         stereo_cal.matrices_cameras[k],
-         stereo_cal.dcoefs[k],
-         stereo_cal.rectif_R[k],
-         stereo_cal.rectif_P[k]);
+  for (auto k = 0u; k < 2; k++) {
+    cv::Mat_<cv::Point2f> p1(1, 1), p2(1, 1);
+    p1(0) = cv::Point2f(balle_loc[0].x, balle_loc[0].y);
+    cv::undistortPoints(p1, p2, stereo_cal.matrices_cameras[k],
+                        stereo_cal.dcoefs[k], stereo_cal.rectif_R[k],
+                        stereo_cal.rectif_P[k]);
     loc_rectifiee[k] = p2(0);
   }
 
@@ -828,9 +745,9 @@ int DemoLocalisation3D::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
   p0.x = loc_rectifiee[0].x;
   p0.y = loc_rectifiee[0].y;
   p0.z = x_dist;
-  //p0[3] = 0;
+  // p0[3] = 0;
 
-  Mat_<Point3f> mp0(1,1), mp1(1,1);
+  cv::Mat_<cv::Point3f> mp0(1, 1), mp1(1, 1);
 
   mp0(0) = p0;
   cv::perspectiveTransform(mp0, mp1, stereo_cal.Q); // ????
@@ -838,27 +755,21 @@ int DemoLocalisation3D::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
 
   infos("Coordonnées 3D = %.2f, %.2f, %.2f.", p1.x, p1.y, p1.z);
 
-
   /*Mat O;
   cv::remap(input.images[0], O,
             stereo_cal.rmap[0][0],
             stereo_cal.rmap[0][1],
             CV_INTER_LINEAR);*/
-  Mat O = input.images[0];
+  cv::Mat O = input.images[0];
 
   // Juste un test : reprojection du point 3d vers l'image 0
   // ==> On devrait avoir à peu près les coordonnées du point détecté.
-  Mat_<Point2f> mp2; // Coordonnées dans l'image 0
-  cv::projectPoints(mp1,
-          stereo_cal.R, stereo_cal.T,
-          stereo_cal.matrices_cameras[0],
-          stereo_cal.dcoefs[0],
-          mp2);
+  cv::Mat_<cv::Point2f> mp2; // Coordonnées dans l'image 0
+  cv::projectPoints(mp1, stereo_cal.R, stereo_cal.T,
+                    stereo_cal.matrices_cameras[0], stereo_cal.dcoefs[0], mp2);
   infos("Balle reprojetee sur img0 : %.2f, %.2f.", mp2(0).x, mp2(0).y);
 
   output.images[2] = O;
 
   return 0;
 }
-
-

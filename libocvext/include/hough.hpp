@@ -8,7 +8,7 @@
 #ifndef HOUGH_E_HPP
 #define HOUGH_E_HPP
 
-#include "opencv2/core.hpp"
+#include "opencv4/opencv2/core.hpp"
 #include <vector>
 #include <cmath>
 

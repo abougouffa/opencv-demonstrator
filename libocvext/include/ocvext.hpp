@@ -1,7 +1,7 @@
 #ifndef MISC_H
 #define MISC_H
 
-#include "opencv2/core.hpp"
+#include "opencv4/opencv2/core.hpp"
 #include <string>
 #include "modele.hpp"
 

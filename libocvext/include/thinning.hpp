@@ -1,7 +1,7 @@
 #ifndef THINNING_H
 #define THINNING_H
 
-#include <opencv2/core.hpp>
+#include <opencv4/opencv2/core.hpp>
 
 namespace ocvext {
 

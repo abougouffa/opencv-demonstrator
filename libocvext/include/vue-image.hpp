@@ -2,7 +2,7 @@
 #define VUE_IMAGE_H
 
 #include "mmi/gtkutil.hpp"
-#include <opencv2/imgproc.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
 
 
 namespace ocvext

@@ -1,7 +1,7 @@
 #ifndef VUE_COLLECTION_H
 #define VUE_COLLECTION_H
 
-#include <opencv2/imgproc.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
 #include "vue-image.hpp"
 #include "mmi/stdview.hpp"
 #include "vue-image.hpp"
